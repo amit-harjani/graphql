@@ -12,20 +12,28 @@ const typeDefs = gql`
       id: Int
     name: String
     username: String
+    address : address
+    post : [post]
+    greeting:String
     
+  }
+  type address {
+    city : String
   }
   type post {
       title : String
       body : String
   }
+  
+  
 
   # The "Query" type is special: it lists all of the available queries that
   # clients can execute, along with the return type for each. In this
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
-    users: user
-    greeting:String
-    posts :[post]
+    users(id:Int): user
+    greeting(name:String) :String
+    posts : [post]
   }
 `;
 const baseURL = `https://jsonplaceholder.typicode.com`
@@ -33,16 +41,21 @@ const baseURL = `https://jsonplaceholder.typicode.com`
 const resolvers = {
   Query: {
    
-    users: () => {
+    users: async (soruce,{id}) => {
+     let data={};
      
-      return fetch(`${baseURL}/users/1`).then(res => res.json()).then(json => json)
+     await fetch(`${baseURL}/users/`+`${id}`).then(res => res.json()).then(json => data = json)
+     await fetch(`${baseURL}/posts?userId=`+`${id}`).then(res => res.json()).then(json => data.post = json)
+     console.log(data);
+     return data;
     },
     posts: () => {
      
         return fetch(`${baseURL}/posts?userId=1`).then(res => res.json()).then(json => json)
       },
-    greeting:() => {
-        return "hello from  TutorialsPoint !!!"
+    greeting:(s,{name}) => {
+      
+        return "hello from  world !!!"+name
      },
    
   },
