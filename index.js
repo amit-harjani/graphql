@@ -31,7 +31,7 @@ const typeDefs = gql`
   # clients can execute, along with the return type for each. In this
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
-    users(id:Int): user
+    users(id:String): [user]
     greeting(name:String) :String
     posts : [post]
   }
@@ -43,15 +43,19 @@ const resolvers = {
    
     users: async (soruce,{id}) => {
      let data={};
+     let url = id?'/users/'+id:'/users';
      
-     await fetch(`${baseURL}/users/`+`${id}`).then(res => res.json()).then(json => data = json)
-     await fetch(`${baseURL}/posts?userId=`+`${id}`).then(res => res.json()).then(json => data.post = json)
+     await fetch(`${baseURL}`+`${url}`).then(res => res.json()).then(json => data = Array.isArray(json)?json:[json])
+     for(let i= 0 ;i<data.length;i++){
+      data[i].post = await resolvers.Query.posts(data[i].id);
+     }
+     
      console.log(data);
      return data;
     },
-    posts: () => {
-     
-        return fetch(`${baseURL}/posts?userId=1`).then(res => res.json()).then(json => json)
+    posts: (id=1) => {
+    
+        return fetch(`${baseURL}/posts?userId=`+`${id}`).then(res => res.json()).then(json => json)
       },
     greeting:(s,{name}) => {
       
